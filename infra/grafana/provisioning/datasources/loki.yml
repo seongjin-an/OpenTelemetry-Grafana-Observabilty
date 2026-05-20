@@ -1,0 +1,43 @@
+apiVersion: 1
+
+datasources:
+  - name: Loki
+    type: loki
+    uid: loki
+    access: proxy
+    url: http://loki:3100
+    isDefault: true
+    jsonData:
+      maxLines: 5000
+      # Loki 로그에서 trace_id 필드가 감지되면 Tempo 로 점프
+      derivedFields:
+        - datasourceUid: tempo
+          matcherRegex: '"trace_id":"(\w+)"'
+          name: TraceID
+          url: '$${__value.raw}'
+        - datasourceUid: tempo
+          matcherRegex: 'trace_id=(\w+)'
+          name: TraceID (plain)
+          url: '$${__value.raw}'
+
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://tempo:3200
+    jsonData:
+      # Tempo 트레이스에서 로그 보기: service.name + trace_id 로 Loki 쿼리
+      tracesToLogsV2:
+        datasourceUid: loki
+        spanStartTimeShift: -1m
+        spanEndTimeShift: 1m
+        filterByTraceID: true
+        customQuery: true
+        query: '{service_name="$${__span.tags["service.name"]}"} |= "$${__span.traceId}"'
+      # sagaId 로 span 찾아가기
+      search:
+        hide: false
+      serviceMap:
+        datasourceUid: prometheus   # (아직 prometheus 없음. 나중에 추가 시 활성)
+      nodeGraph:
+        enabled: true

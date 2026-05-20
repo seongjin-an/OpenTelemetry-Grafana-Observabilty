@@ -1,0 +1,41 @@
+<configuration>
+  <appender name="JSON_CONSOLE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/demo.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>logs/demo.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>30</maxHistory>
+      <totalSizeCap>3GB</totalSizeCap>
+    </rollingPolicy>
+    <!--
+    <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+      <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
+        <timestampFormat>yyyy-MM-dd' 'HH:mm:ss.SSS</timestampFormat>
+        <appendLineSeparator>true</appendLineSeparator>
+        <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
+          <prettyPrint>false</prettyPrint>
+        </jsonFormatter>
+      </layout>
+    </encoder>
+    -->
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+      <providers>
+        <timestamp>
+          <fieldName>timestamp</fieldName>
+        </timestamp>
+        <logLevel>
+          <fieldName>level</fieldName>
+        </logLevel>
+        <threadName/>
+        <loggerName/>
+        <message/>
+        <mdc>
+          <includeMdcKeyName>traceId</includeMdcKeyName>
+        </mdc>
+      </providers>
+    </encoder>
+
+  </appender>
+  <root level="INFO">
+    <appender-ref ref="JSON_CONSOLE"/>
+  </root>
+</configuration>

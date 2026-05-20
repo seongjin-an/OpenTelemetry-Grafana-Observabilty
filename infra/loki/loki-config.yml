@@ -1,0 +1,52 @@
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+limits_config:
+  # 개발 환경: 수집 순서가 맞지 않아도 허용 (스트레스 테스트 시 로그 순서 역전 방지)
+  reject_old_samples: false
+
+  # OTLP 수신 활성화 (Loki 3.0+)
+  # trace_id / span_id / severity_number 등은 structured metadata 로 저장됨
+  # Grafana 에서 로그 상세 → "View trace" 버튼이 자동 노출
+  allow_structured_metadata: true
+  volume_enabled: true          # /api/v1/volume 엔드포인트 — 라벨 카디널리티 모니터링
+  #  ingestion_rate_mb: 16
+  #  ingestion_burst_size_mb: 32
+  # 1. 초당 유입량 대폭 확대
+  ingestion_rate_mb: 50           # 초당 50MB까지 수용 (기존 16)
+  ingestion_burst_size_mb: 100    # 순간적으로 100MB 튀어도 허용 (기존 32)
+
+  # 2. 스트림 및 라벨 개수 제한 완화 (중요!)
+  max_streams_per_user: 20000     # 아까 에러 났던 'Stream limit'을 두 배로
+  max_label_name_length: 1024
+  max_label_value_length: 2048
+  max_label_names_per_series: 30  # 라벨 개수가 많아져도 거부하지 않음
+
+  # 3. 로그 라인 크기 제한 (Stack Trace가 길 때 유용)
+  max_line_size: 256kb            # 로그 한 줄 최대 크기 (초과 시 아래 설정에 따라 처리)
+  max_line_size_truncate: true    # true: 초과분을 잘라 수용, false: 해당 라인 거부

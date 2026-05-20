@@ -1,0 +1,46 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.14'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.ansj'
+version = '0.0.1-SNAPSHOT'
+description = 'demo'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testCompileOnly 'org.projectlombok:lombok'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+bootRun {
+	jvmArgs = [
+		"-javaagent:${rootDir.parent}/gateway/infra/agent/opentelemetry-javaagent.jar",
+		"-Dotel.service.name=demo",
+		"-Dotel.exporter.otlp.endpoint=http://localhost:24317",
+		"-Dotel.exporter.otlp.protocol=grpc",
+		"-Dotel.logs.exporter=otlp",
+		"-Dotel.metrics.exporter=none",
+		"-Dotel.propagators=tracecontext,baggage"
+	]
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
