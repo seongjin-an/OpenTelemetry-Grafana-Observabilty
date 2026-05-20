@@ -34,6 +34,19 @@ limits_config:
   # trace_id / span_id / severity_number 등은 structured metadata 로 저장됨
   # Grafana 에서 로그 상세 → "View trace" 버튼이 자동 노출
   allow_structured_metadata: true
+
+  # OTLP 라벨 정책: 낮은 카디널리티 속성만 index_label 로 승격
+  # trace_id 같은 고유값은 절대 라벨 금지 → structured_metadata 로 자동 저장됨
+  # 쿼리: {service_namespace="otel-obs"} | trace_id = "abc123"
+  otlp_config:
+    resource_attributes:
+      attributes_config:
+        - regex: service.namespace
+          action: index_label
+        - regex: service.name
+          action: index_label
+        - regex: deployment.environment
+          action: index_label
   volume_enabled: true          # /api/v1/volume 엔드포인트 — 라벨 카디널리티 모니터링
   #  ingestion_rate_mb: 16
   #  ingestion_burst_size_mb: 32

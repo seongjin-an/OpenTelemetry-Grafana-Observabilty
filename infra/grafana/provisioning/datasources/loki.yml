@@ -8,36 +8,12 @@ datasources:
     url: http://loki:3100
     isDefault: true
     jsonData:
-      maxLines: 5000
-      # Loki 로그에서 trace_id 필드가 감지되면 Tempo 로 점프
+      # OTLP 로 수신된 로그는 trace_id 가 structured metadata 로 저장됨.
+      # matcherType: label 은 log body 가 아닌 라벨/메타데이터에서 값을 추출함.
       derivedFields:
-        - datasourceUid: tempo
-          matcherRegex: '"trace_id":"(\w+)"'
-          name: TraceID
-          url: '$${__value.raw}'
-        - datasourceUid: tempo
-          matcherRegex: 'trace_id=(\w+)'
-          name: TraceID (plain)
-          url: '$${__value.raw}'
-
-  - name: Tempo
-    type: tempo
-    uid: tempo
-    access: proxy
-    url: http://tempo:3200
-    jsonData:
-      # Tempo 트레이스에서 로그 보기: service.name + trace_id 로 Loki 쿼리
-      tracesToLogsV2:
-        datasourceUid: loki
-        spanStartTimeShift: -1m
-        spanEndTimeShift: 1m
-        filterByTraceID: true
-        customQuery: true
-        query: '{service_name="$${__span.tags["service.name"]}"} |= "$${__span.traceId}"'
-      # sagaId 로 span 찾아가기
-      search:
-        hide: false
-      serviceMap:
-        datasourceUid: prometheus   # (아직 prometheus 없음. 나중에 추가 시 활성)
-      nodeGraph:
-        enabled: true
+        - name: TraceID
+          matcherType: label
+          matcherRegex: trace_id
+          url: '${__value.raw}'
+          datasourceUid: tempo
+          urlDisplayLabel: View Trace

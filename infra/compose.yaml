@@ -8,7 +8,7 @@ services:
     volumes:
       - ./loki/loki-config.yml:/etc/loki/loki-config.yml:ro
       - ./.data/loki:/loki
-    command: -config.file=/etc/loki/loki-config.yml
+    command: -config.file=/etc/loki/loki-config.yml -config.expand-env=true
 
   tempo:
     image: grafana/tempo:2.5.0

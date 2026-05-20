@@ -31,8 +31,9 @@ dependencies {
 
 bootRun {
 	jvmArgs = [
-		"-javaagent:${rootDir.parent}/gateway/infra/agent/opentelemetry-javaagent.jar",
+		"-javaagent:${rootDir.parent}/infra/agent/opentelemetry-javaagent.jar",
 		"-Dotel.service.name=demo",
+		"-Dotel.resource.attributes=service.namespace=otel-obs",
 		"-Dotel.exporter.otlp.endpoint=http://localhost:24317",
 		"-Dotel.exporter.otlp.protocol=grpc",
 		"-Dotel.logs.exporter=otlp",
