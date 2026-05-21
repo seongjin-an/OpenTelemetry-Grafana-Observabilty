@@ -39,6 +39,31 @@ services:
       - loki
       - tempo
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.0
+    restart: unless-stopped
+    ports:
+      - "19200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false   # 로컬 개발용
+      - xpack.ml.enabled=false         # ML 비활성화 — 메모리 절약
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m # 힙 512MB 고정 (기본값 4GB)
+      - cluster.routing.allocation.disk.threshold_enabled=false  # 로컬 디스크 워터마크 체크 비활성화
+    volumes:
+      - ./.data/elasticsearch:/usr/share/elasticsearch/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.14.0
+    restart: unless-stopped
+    ports:
+      - "15601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - NODE_OPTIONS=--max-old-space-size=512  # Node.js 힙 512MB
+    depends_on:
+      - elasticsearch
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.103.0
     restart: unless-stopped
@@ -54,3 +79,4 @@ services:
     depends_on:
       - tempo
       - loki
+      - elasticsearch

@@ -1,10 +1,17 @@
 <configuration>
 
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>%d{HH:mm:ss.SSS} %-5level trace_id=%X{trace_id} [%thread] %logger{36} - %msg%n</pattern>
-    </encoder>
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
   </appender>
+
+  <!-- 프레임워크 시작 로그 억제 -->
+  <logger name="org.springframework" level="WARN"/>
+  <logger name="io.netty"            level="WARN"/>
+  <logger name="reactor"             level="WARN"/>
+  <logger name="com.netflix"         level="WARN"/>
+
+  <!-- 애플리케이션 로거 -->
+  <logger name="com.example" level="INFO"/>
 
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>
